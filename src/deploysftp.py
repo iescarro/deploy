@@ -5,9 +5,11 @@ import os
 import pysftp
 from pathlib import Path
 
+
 def upload_files(sftp, files, default_remote_directory):
     for f in files:
         upload_file(sftp, f, default_remote_directory)
+
 
 def upload_file(sftp, f, default_remote_directory):
     # print('Uploading', f)
@@ -30,6 +32,7 @@ def upload_file(sftp, f, default_remote_directory):
         sftp.put(full_path)
         print('Adding', f, 'OK')
 
+
 def get_changed_files(source_hash, target_hash, excluded_files):
     repo = git.Repo('.')
     source_commit = repo.commit(source_hash)
@@ -44,6 +47,7 @@ def get_changed_files(source_hash, target_hash, excluded_files):
             changed_files.append(filename)
     return changed_files
 
+
 def update_config(config_file):
     repo = git.Repo('.')
     source_hash = repo.head.commit.hexsha
@@ -53,11 +57,13 @@ def update_config(config_file):
     with open(config_file, 'w') as o:
         json.dump(config, o, indent=2)
 
+
 def get_config(config_file):
     config = {}
     with open(config_file) as f:
         config = json.load(f)
     return config
+
 
 def main():
     config_file = 'deploy.json'
@@ -65,16 +71,19 @@ def main():
         config_file = sys.argv[1]
 
     config = get_config(config_file)
-    changed_files = get_changed_files(config['source_hash'], config['target_hash'], config['excluded_files'])
+    changed_files = get_changed_files(
+        config['source_hash'], config['target_hash'], config['excluded_files'])
     print(len(changed_files), 'files changed')
     if len(changed_files) > 0:
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
         with pysftp.Connection(host=config['host'], username=config['username'], password=config['password'], cnopts=cnopts) as sftp:
-            upload_files(sftp, changed_files, config['default_remote_directory'])
+            upload_files(sftp, changed_files,
+                         config['default_remote_directory'])
             update_config(config_file)
             print('Done')
 
     print()
+
 
 main()
