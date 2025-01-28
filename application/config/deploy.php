@@ -5,7 +5,7 @@ $deploy = array(
         'host' => getenv('DEPLOY_HOST'),
         'user' =>  getenv('DEPLOY_USER'),
         'key_path' => getenv('DEPLOY_SSH_KEY_PATH'),
-        'port' => 65002,
+        'port' => getenv('DEPLOY_PORT'),
         'tasks' => array(
             array(
                 'name' => '',
