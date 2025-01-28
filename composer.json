@@ -3,7 +3,6 @@
     "description": "A very simple deployment tool",
     "license": "MIT",
     "require": {
-        "php": ">=7.4",
         "monolog/monolog": "^2.0"
     },
     "autoload": {
