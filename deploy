@@ -1,0 +1,48 @@
+<?php
+
+// Generates something like
+// ssh -i ~/.ssh/<key_path> -p <port> <user>@<host> -t \"<command1> && <command2> && <command3>
+
+// Include the deployment configuration
+require __DIR__ . '/application/config/deploy.php';
+
+// Check for the "stage" parameter
+// if ($argc < 2) {
+//   echo "Error: Please specify a deployment environment (e.g., php deploy production).\n";
+//   exit(1);
+// }
+
+$environment = isset($argv[1]) ? $argv[1] : 'production';
+
+// Verify if the provided stage exists in the configuration
+if (!isset($deploy[$environment])) {
+  echo "Error: Invalid environment '$environment'. Available environments are: " . implode(', ', array_keys($deploy)) . ".\n";
+  exit(1);
+}
+
+// Get server details
+$server = $deploy[$environment];
+
+// Build the base SSH command
+$baseCommand = sprintf(
+  "ssh -i %s -p %d %s@%s -t",
+  escapeshellarg($server['key_path']),
+  $server['port'],
+  escapeshellarg($server['user']),
+  escapeshellarg($server['host'])
+);
+
+// Iterate over tasks and build the command
+$commands = [];
+foreach ($deploy[$environment]['tasks'] as $task) {
+  $commands[] = $task['command'];
+}
+
+// Combine all tasks into a single SSH session
+$sshCommand = $baseCommand . ' "' . implode(' && ', $commands) . '"';
+
+// Execute the command
+$output = shell_exec($sshCommand . ' 2>&1');
+
+// Display the output
+echo $output;
