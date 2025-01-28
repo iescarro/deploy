@@ -13,101 +13,62 @@ composer require iescarro/deploy
 php vendor/iescarro/deploy/install
 ```
 
-After installation, this should copy ```deploy``` script and configuration in 
-application/config/deploy.php.
+After installation, this should copy ```deploy``` script, ```.env.deploy``` file and configuration in ```application/config/deploy.php```.
 
 ### Configuration
 
-1. **Create a `deploy.php` configuration file:**
-    ```php
-    <?php
+If you need to modify the contents of application/config/deploy.php, you can edit it
 
-    return [
-        'repository' => getenv('DEPLOY_REPOSITORY'),
-        'branch' => getenv('DEPLOY_BRANCH'),
-        'server' => getenv('DEPLOY_SERVER'),
-        'username' => getenv('DEPLOY_USERNAME'),
-        'path' => getenv('DEPLOY_PATH'),
-    ];
-    ```
+```
+<?php
 
-2. **Add the deployment configuration to your `.env` file:**
-    ```
-    DEPLOY_REPOSITORY=git@github.com:yourusername/yourrepository.git
-    DEPLOY_BRANCH=main
-    DEPLOY_SERVER=server_ip
-    DEPLOY_USERNAME=username
-    DEPLOY_PATH=/path/to/your/project
-    ```
+$deploy = array(
+    'production' => array(
+        'host' => getenv('DEPLOY_HOST'),
+        'user' =>  getenv('DEPLOY_USER'),
+        'key_path' => getenv('DEPLOY_SSH_KEY_PATH'),
+        'port' => getenv('DEPLOY_PORT'),
+        'tasks' => array(
+            array(
+                'name' => '',
+                'command' => getenv('DEPLOY_TASK_CHANGE_DIR'),
+            ),
+            array(
+                'name' => '',
+                'command' => 'git pull'
+            ),
+            array(
+                'name' => '',
+                'command' => 'composer2 install'
+            )
+        )
+    )
+);
+```
 
-3. **Create a deployment script (`deploy.php`):**
-    ```php
-    <?php
+like adding a staging and testing deployment. Additionally you can configure more commands like removing ```composer.lock``` and other 
+Linux commands you need to configure. Values are retrieved from .env so we can refer to .env.deploy for the names. Add it to
+.env file and change the values to meet with your deployment. The ```.env.deploy``` is just for reference, we can copy those configurations 
+in .env like so
 
-    $config = include 'config/deploy.php';
+```
+# More configurations above from .env file
 
-    $commands = [
-        "ssh {$config['username']}@{$config['server']} 'cd {$config['path']} && git pull origin {$config['branch']}'",
-        "ssh {$config['username']}@{$config['server']} 'cd {$config['path']} && composer install'",
-        "ssh {$config['username']}@{$config['server']} 'cd {$config['path']} && chmod -R 775 storage bootstrap/cache'",
-        "ssh {$config['username']}@{$config['server']} 'cd {$config['path']} && php artisan migrate'",
-        "ssh {$config['username']}@{$config['server']} 'cd {$config['path']} && php artisan config:cache'",
-        "ssh {$config['username']}@{$config['server']} 'sudo service apache2 restart'",
-    ];
+DEPLOY_HOST=server_ip_address
+DEPLOY_PORT=server_port
+DEPLOY_USER=your_user
+DEPLOY_SSH_KEY_PATH=~/.ssh/id_rsa
+DEPLOY_TASK_CHANGE_DIR=cd domains/some.com/public_html
+```
 
-    foreach ($commands as $command) {
-        echo "Executing: $command\n";
-        system($command);
-    }
-    ```
+### Deploy
 
-4. **Run the deployment script:**
-    ```sh
-    php deploy.php
-    ```
+We can easily deploy our project via
 
-### Steps
-
-1. **Connect to the server via SSH:**
-    ```sh
-    ssh username@server_ip
-    ```
-
-2. **Navigate to the project directory:**
-    ```sh
-    cd /path/to/your/project
-    ```
-
-3. **Pull the latest changes from the repository:**
-    ```sh
-    git pull origin main
-    ```
-
-4. **Install PHP dependencies using Composer:**
-    ```sh
-    composer install
-    ```
-
-5. **Set the correct permissions for the storage and cache directories:**
-    ```sh
-    chmod -R 775 storage
-    chmod -R 775 bootstrap/cache
-    ```
-
-6. **Run database migrations:**
-    ```sh
-    php artisan migrate
-    ```
-
-7. **Clear and cache the configuration:**
-    ```sh
-    php artisan config:cache
-    ```
-
-8. **Restart the web server (if necessary):**
-    ```sh
-    sudo service apache2 restart
-    ```
+```
+php deploy
+# or php deploy stage for staging deployment
+```
 
 ### Troubleshooting
 
@@ -118,4 +79,3 @@ application/config/deploy.php.
 ### Additional Resources
 
 - [Composer Documentation](https://getcomposer.org/doc/)
-- [Laravel Deployment Guide](https://laravel.com/docs/deployment)
