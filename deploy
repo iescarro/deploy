@@ -73,6 +73,7 @@ foreach ($deploy[$environment]['tasks'] as $task) {
 
 // Combine all tasks into a single SSH session
 $sshCommand = $baseCommand . ' "' . implode(' && ', $commands) . '"';
+echo $sshCommand . "\n";
 
 // Execute the command
 $output = shell_exec($sshCommand . ' 2>&1');

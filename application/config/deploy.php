@@ -13,6 +13,10 @@ $deploy = array(
             ),
             array(
                 'name' => '',
+                'command' => 'if [ ! -d ".git" ]; then git clone ' . getenv('GIT_REPO_URL') . ' .; fi'
+            ),
+            array(
+                'name' => '',
                 'command' => 'git pull'
             ),
             array(
